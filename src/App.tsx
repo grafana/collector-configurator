@@ -3,40 +3,21 @@ import { GrafanaTheme2 } from "@grafana/data";
 import { useStyles } from "./theme";
 import {
   Alert,
-  LinkButton,
   Button,
-  Modal,
   Input,
   Icon,
   Tooltip,
   VerticalGroup,
-  HorizontalGroup,
-  Badge,
 } from "@grafana/ui";
 import Header from "./components/Header";
 import ConfigEditor from "./components/ConfigEditor";
 import { useState, useMemo } from "react";
-import ExamplesCatalog from "./components/ExamplesCatalog";
 import { useModelContext } from "./state";
-import InstallationInstructions from "./components/InstallationInstructions";
-import ConfigurationWizard from "./components/ConfigurationWizard";
-import Converter from "./components/Converter";
 
 function App() {
   const styles = useStyles(getStyles);
-  const [wizardOpen, setWizardOpen] = useState(false);
-  const openWizard = () => setWizardOpen(true);
-  const closeWizard = () => setWizardOpen(false);
-  const [examplesCatalogOpen, setExamplesCatalogOpen] = useState(false);
-  const openExamples = () => setExamplesCatalogOpen(true);
-  const closeExamples = () => setExamplesCatalogOpen(false);
-  const [converterOpen, setConverterOpen] = useState(false);
-  const openConverter = () => setConverterOpen(true);
-  const closeConverter = () => setConverterOpen(false);
   const { model } = useModelContext();
   const [copied, setCopied] = useState(false);
-
-  const converterEnabled = !!process.env.REACT_APP_CONVERT_ENDPOINT;
 
   const shareLink = useMemo(
     () => `${window.location}?c=${btoa(model)}`,
@@ -56,42 +37,9 @@ function App() {
       <Header></Header>
       <section className={styles.section}>
         <div className={styles.hero}>
-          <h1>Welcome to the Grafana Agent Configuration Generator</h1>
-          <p>
-            This tool allows for easy configuration of Grafana Agents{" "}
-            <i>Flow</i> system. To get started click on{" "}
-            <code>Add Component</code> in the editor below
-          </p>
+          <h1>Welcome to the Configuration Generator</h1>
+          <p>This tool allows for easy configuration of the OTEL Collector</p>
           <hr />
-          <VerticalGroup>
-            <p>
-              If this is your first time working with the agent, we recommend
-              you use the configuration wizard or get started with an example
-              configuration, based on your usecase.
-            </p>
-            <HorizontalGroup>
-              <Button onClick={openWizard} variant="primary">
-                Start configuration wizard
-              </Button>
-              {converterEnabled && (
-                <Button onClick={openConverter} variant="secondary">
-                  <Badge text="New" icon="rocket" color="green" />
-                  Convert your existing configuration
-                </Button>
-              )}
-              <Button onClick={openExamples} variant="secondary">
-                Open examples catalog
-              </Button>
-              <LinkButton
-                variant="secondary"
-                href="https://grafana.com/docs/agent/latest/flow/"
-                target="_blank"
-                icon="external-link-alt"
-              >
-                View Flow Docs
-              </LinkButton>
-            </HorizontalGroup>
-          </VerticalGroup>
         </div>
       </section>
       <section className={styles.section}>
@@ -124,31 +72,6 @@ function App() {
           </VerticalGroup>
         </div>
       </section>
-      <section className={styles.section}>
-        <InstallationInstructions />
-      </section>
-      <Modal
-        title="Configuration Wizard"
-        isOpen={wizardOpen}
-        onDismiss={closeWizard}
-        className={styles.wizardModal}
-      >
-        <ConfigurationWizard dismiss={closeWizard} />
-      </Modal>
-      <Modal
-        title="Examples Catalog"
-        isOpen={examplesCatalogOpen}
-        onDismiss={closeExamples}
-      >
-        <ExamplesCatalog dismiss={closeExamples} />
-      </Modal>
-      <Modal
-        title="Configuration Converter"
-        isOpen={converterOpen}
-        onDismiss={closeConverter}
-      >
-        <Converter dismiss={closeConverter} />
-      </Modal>
     </div>
   );
 }

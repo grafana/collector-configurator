@@ -11,16 +11,18 @@ const Header = () => {
       <div className={styles.headerContent}>
         <div className={styles.flex}>
           <img
-            src={`${process.env.PUBLIC_URL}/grafana.svg`}
-            alt={"Grafana logo"}
+            src={`${process.env.PUBLIC_URL}/otel.png`}
+            alt={"OTEL logo"}
             className={styles.logo}
           />
-          <h4 className={styles.headerText}>Agent Configuration Generator</h4>
+          <h4 className={styles.headerText}>
+            OpenTelemetry Collector Configurator
+          </h4>
         </div>
         <div className={styles.flex}>
           <a
             className={styles.icon}
-            href={"https://github.com/grafana/agent-configurator"}
+            href={"https://github.com/grafana/collector-configurator"}
             target={"_blank"}
             rel={"noreferrer noopenner"}
           >

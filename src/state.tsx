@@ -1,8 +1,5 @@
 import React, { useContext, useState } from "react";
-import Parser from "web-tree-sitter";
-import { Block } from "./lib/river";
-
-export type Component = { block: Block; node: Parser.SyntaxNode };
+import { Component } from "./lib/parse";
 
 const ComponentContext = React.createContext<{
   components: Component[];
@@ -24,7 +21,7 @@ export function useComponentContext() {
   const context = useContext(ComponentContext);
   if (!context) {
     throw new Error(
-      "useComponentContext must be used within the ComponentProvider"
+      "useComponentContext must be used within the ComponentProvider",
     );
   }
   return context;
@@ -38,13 +35,12 @@ const ModelContext = React.createContext<{
 // Model provider
 export const ModelProvider = ({ children }: React.PropsWithChildren) => {
   const urlModel = new URLSearchParams(document.location.search).get("c");
-  const localStorageModel = localStorage.getItem("config.river");
+  const localStorageModel = localStorage.getItem("config.yaml");
   let initialModel = "";
   if (urlModel) initialModel = atob(urlModel);
   else if (localStorageModel) initialModel = localStorageModel;
   if (initialModel === "") {
-    initialModel = `// Welcome to the Grafana Agent Configurator!
-// You can paste your configuration here or start by using the configuration wizard or by loading an example from the catalog.
+    initialModel = `# Welcome to the OTEL Collector Configurator
 
 `;
   }

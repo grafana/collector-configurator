@@ -1,28 +1,8 @@
-# Agent Configurator Tool
+# Collector Configurator Tool
 
-The _Agent Configuration Generator_ is an easy to use web interface for creating and editing agent configuration files. It targets the flow configuration format.
+The _Collector Configuration Generator_ is an easy to use web interface for creating and editing OpenTelemetry Collector configuration files.
 
-Try it out here: [grafana.github.io/agent-configurator/](https://grafana.github.io/agent-configurator/)
-
-**This is an experimental tool and still in its early days!**. While we aim to support all agent components and are commited to adding support for new components, complete support will take some time.
-
-## Core Features
-
-Features marked as completed are currently present while the rest are still in development.
-
-* [x] Create a fresh agent configuration file using a guided configuration wizard
-* [x] Update existing configurations by editing existing components or adding new ones
-* [ ] Have [all components](https://grafana.com/docs/agent/latest/flow/reference/components/) configurable without writing code
-* [x] Share configurations as URLs
-
-## Target Audience
-
-* First time agent users
-  * Provide value by allowing _mix and match_ configuration without having to understand the configuration language
-* Advanced users
-  * Provide value by improving discoverability of components and configuration options
-* Expert users
-  * Provide value by sharing configurations using a single URL
+Try it out here: [grafana.github.io/collector-configurator/](https://grafana.github.io/collector-configurator/)
 
 # Setup
 

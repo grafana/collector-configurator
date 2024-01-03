@@ -1,18 +1,21 @@
 import Editor, { Monaco } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 import { useCallback, useMemo, useRef, useState, useEffect } from "react";
-import { Button, Drawer, HorizontalGroup, LinkButton } from "@grafana/ui";
+import { Drawer } from "@grafana/ui";
 
-import Parser from "web-tree-sitter";
+import YAML from "yaml";
 
 import { Theme, useStyles, useTheme } from "../../theme";
 import ComponentList from "../ComponentList";
 import ComponentEditor from "../ComponentEditor";
-import * as River from "../../lib/river";
-import { useComponentContext, Component, useModelContext } from "../../state";
+import { useComponentContext, useModelContext } from "../../state";
 import { css } from "@emotion/css";
 import { GrafanaTheme2 } from "@grafana/data";
-import { markersFor } from "../../lib/componentaddons";
+import { configureMonacoYaml } from "monaco-yaml";
+
+import schema from "../../lib/schema.json";
+import { Component, parseConfig, typeTitle } from "../../lib/parse";
+import { JSONSchema7 } from "json-schema";
 
 const defaultOpts: monaco.editor.IStandaloneEditorConstructionOptions = {
   fontSize: 15,
@@ -23,74 +26,40 @@ const defaultOpts: monaco.editor.IStandaloneEditorConstructionOptions = {
   },
 };
 
-type SelectedComponent = {
-  component: River.Block;
-  node: Parser.SyntaxNode | null;
-};
-
-const findErrors = (cursor: Parser.TreeCursor, level = 0) => {
-  if (!cursor.currentNode().hasError) return [];
-  let errs: monaco.editor.IMarkerData[] = [];
-  while (true) {
-    const n = cursor.currentNode();
-    if (cursor.nodeType === "ERROR") {
-      errs.push({
-        message: "unable to parse",
-        severity: monaco.MarkerSeverity.Error,
-        startLineNumber: n.startPosition.row + 1,
-        startColumn: n.startPosition.column,
-        endLineNumber: n.endPosition.row + 1,
-        endColumn: n.endPosition.column + 1,
-      });
+function cleanValues(values: any, schema: JSONSchema7): any {
+  const v = values;
+  for (const k of Object.keys(values)) {
+    if (v[k] === (schema.properties?.[k] as JSONSchema7).default) {
+      delete v[k];
+    } else if (Number.isNaN(v[k])) {
+      delete v[k];
+    } else if ((schema.properties?.[k] as JSONSchema7).type === "object") {
+      v[k] = cleanValues(v[k], schema.properties?.[k] as JSONSchema7);
+      if (Object.keys(v[k]).length === 0) {
+        delete v[k];
+      }
     }
-    if (cursor.nodeIsMissing) {
-      errs.push({
-        message: "Missing " + n.type,
-        severity: monaco.MarkerSeverity.Error,
-        startLineNumber: n.startPosition.row + 1,
-        startColumn: n.startPosition.column,
-        endLineNumber: n.endPosition.row + 1,
-        endColumn: n.endPosition.column + 1,
-      });
-    }
-    if (cursor.gotoFirstChild()) {
-      errs = errs.concat(findErrors(cursor, level + 1));
-      cursor.gotoParent();
-    }
-    if (!cursor.gotoNextSibling()) break;
   }
-  return errs;
-};
-
-const provideInfoMarkers = (
-  components: { node: Parser.SyntaxNode; block: River.Block }[],
-): monaco.editor.IMarkerData[] => {
-  return components.flatMap((c) => {
-    return markersFor(c.node, c.block);
-  }, []);
-};
+  return v;
+}
 
 const ConfigEditor = () => {
-  const { setComponents } = useComponentContext();
   const { model, setModel } = useModelContext();
+  const { setComponents } = useComponentContext();
   const editorRef = useRef<null | monaco.editor.IStandaloneCodeEditor>(null);
   const monacoRef = useRef<null | Monaco>(null);
-  const parserRef = useRef<null | { parser: Parser; river: Parser.Language }>(
-    null,
-  );
   const commandRef = useRef<null | {
     addComponent: string;
     editComponent: string;
   }>(null);
-
   const componentsRef = useRef<Component[]>([]);
 
   const styles = useStyles(getStyles);
 
   const [isDrawerOpen, setDrawerOpen] = useState(false);
-  const [parsingTime, setParsingTime] = useState("0");
-  const [currentComponent, setCurrentComponent] =
-    useState<SelectedComponent | null>(null);
+  const [currentComponent, setCurrentComponent] = useState<Component | null>(
+    null,
+  );
 
   const theme = useTheme();
   const editorTheme = useMemo(
@@ -99,48 +68,40 @@ const ConfigEditor = () => {
     [theme],
   );
 
-  const parseComponents = useCallback(() => {
-    if (!parserRef.current) return;
-    const { parser, river } = parserRef.current;
-    const start = performance.now();
-    const tree = parser.parse(model);
-    const cursor = tree.walk();
-    const componentQuery = river.query(`(config_file (block) @component)`);
-    const matches = componentQuery.matches(tree.rootNode);
-    const components = matches.map((match) => {
-      const node = match.captures[0].node;
-      return { node, block: River.UnmarshalBlock(node) };
-    });
-    componentsRef.current = components;
-    setComponents(components);
-
-    const errs = findErrors(cursor);
-    const infos = provideInfoMarkers(components);
-    const mmdl = editorRef.current?.getModel();
-    if (mmdl) {
-      monacoRef.current?.editor.setModelMarkers(mmdl, "ts", [
-        ...errs,
-        ...infos,
-      ]);
-    }
-    const duration = (performance.now() - start).toFixed(1);
-    setParsingTime(duration);
-  }, [setComponents, model, setParsingTime]);
-
-  useEffect(() => {
-    (async () => {
-      await Parser.init({
-        locateFile(scriptName: string, scriptDirectory: string) {
-          return scriptName;
+  const beforeMount = (monaco: Monaco) => {
+    window.MonacoEnvironment = {
+      getWorker(_, label) {
+        switch (label) {
+          case "editorWorkerService":
+            return new Worker(
+              new URL(
+                "monaco-editor/esm/vs/editor/editor.worker",
+                import.meta.url,
+              ),
+            );
+          case "yaml":
+            return new Worker(
+              new URL("monaco-yaml/yaml.worker", import.meta.url),
+            );
+          default:
+            throw new Error(`Unknown label ${label}`);
+        }
+      },
+    };
+    configureMonacoYaml(monaco, {
+      enableSchemaRequest: true,
+      schemas: [
+        {
+          // If YAML file is opened matching this glob
+          fileMatch: ["*"],
+          // And the URI will be linked to as the source.
+          uri: "https://github.com/dash0hq/otelbin/blob/main/src/components/monaco-editor/schema.json",
+          // @ts-expect-error TypeScript can’t narrow down the type of JSON imports
+          schema,
         },
-      });
-      const parser = new Parser();
-      const river = await Parser.Language.load("tree-sitter-river.wasm");
-      parser.setLanguage(river);
-      parserRef.current = { parser, river };
-      parseComponents();
-    })();
-  }, [parseComponents]);
+      ],
+    });
+  };
 
   const provideCodeLenses = useCallback(function(
     model: monaco.editor.ITextModel,
@@ -163,26 +124,19 @@ const ConfigEditor = () => {
         },
       },
     ];
-    if (!parserRef.current) {
-      return {
-        lenses,
-        dispose: () => { },
-      };
-    }
-    if (!componentsRef.current) return;
     lenses.push(
       ...componentsRef.current.map((c) => {
         return {
           range: {
-            startLineNumber: c.node.startPosition.row + 1,
-            startColumn: c.node.startPosition.column,
-            endLineNumber: c.node.endPosition.row + 1,
-            endColumn: c.node.endPosition.column,
+            startLineNumber: c.keyRange.begin.line,
+            startColumn: c.keyRange.begin.col,
+            endLineNumber: c.keyRange.end.line,
+            endColumn: c.keyRange.end.col,
           },
           command: {
             id: editComponent,
-            title: "Edit Component",
-            arguments: [River.UnmarshalBlock(c.node), c.node],
+            title: `Edit ${typeTitle(c)}`,
+            arguments: [c],
           },
         };
       }),
@@ -192,7 +146,6 @@ const ConfigEditor = () => {
       dispose: () => { },
     };
   }, []);
-
   const handleEditorDidMount = useCallback(
     (editor: monaco.editor.IStandaloneCodeEditor, monaco: Monaco) => {
       monaco.editor.defineTheme("thema-dark", {
@@ -224,11 +177,8 @@ const ConfigEditor = () => {
       );
       var editComponentCommand = editor.addCommand(
         0,
-        function(ctx, component: River.Block, node: Parser.SyntaxNode) {
-          setCurrentComponent({
-            component,
-            node,
-          });
+        function(ctx, component: Component) {
+          setCurrentComponent(component);
           // need a timeout to prevent the drawer from immediately closing as this happens during the mousedown event
           setTimeout(() => setDrawerOpen(true), 1);
         },
@@ -240,7 +190,7 @@ const ConfigEditor = () => {
         editComponent: editComponentCommand!,
       };
 
-      monaco.languages.registerCodeLensProvider("hcl", {
+      monaco.languages.registerCodeLensProvider("yaml", {
         provideCodeLenses,
         resolveCodeLens: function(model, codeLens, token) {
           return codeLens;
@@ -252,74 +202,73 @@ const ConfigEditor = () => {
     [editorTheme, provideCodeLenses],
   );
 
-  useEffect(parseComponents, [model, setComponents, parseComponents]);
-
   const onChange = (text: string | undefined) => {
     setModel(text || "");
-    localStorage.setItem("config.river", text || "");
+    localStorage.setItem("config.yaml", text || "");
   };
 
-  const insertComponent = (component: River.Block) => {
-    setCurrentComponent({
-      component,
-      node: null,
-    });
+  const insertComponent = (component: Component) => {
+    setCurrentComponent(component);
   };
 
-  const updateComponent = (component: River.Block) => {
+  const parseComponents = useCallback(() => {
+    const components = parseConfig(model);
+    setComponents(components);
+    componentsRef.current = components;
+  }, [model, setComponents, componentsRef]);
+
+  useEffect(parseComponents, [model, parseComponents]);
+
+  const updateComponent = (component: Component) => {
     const editor = editorRef.current!;
-    const model = editor.getModel()!;
-    if (currentComponent === null) {
-      return;
-    }
-    if (currentComponent.node !== null) {
-      const node = currentComponent.node!;
-      const edits = [
-        {
-          range: {
-            startLineNumber: node.startPosition.row + 1,
-            startColumn: node.startPosition.column,
-            endLineNumber: node.endPosition.row + 1,
-            endColumn: node.endPosition.column + 1,
-          },
-          text: component.marshal(),
-        },
-      ];
-      const oldLabel = node.childForFieldName("label")?.namedChild(0)?.text;
-      const oldRef = `${component.name}.${oldLabel}`;
-
-      const existingRefs = model.findMatches(
-        oldRef, // searchString
-        true, // searchOnlyEditableRange
-        false, // isRegex
-        true, // matchCase
-        null, // wordSeparators
-        false, // captureMatches
-      );
-      for (const ref of existingRefs) {
-        edits.push({
-          range: ref.range,
-          text: `${component.name}.${component.label}`,
-        });
-      }
-      editor.executeEdits("configuration-editor", edits);
-    } else {
-      const lastLine = model.getLineCount();
-      const column = model.getLineMaxColumn(lastLine);
+    setDrawerOpen(false);
+    setCurrentComponent(null);
+    const val = cleanValues(component.value, component.schema);
+    let text = YAML.stringify(val).slice(0, -1); // marshall without final \n
+    if (Object.keys(val).length === 0) text = "";
+    const eol =
+      (editor.getModel()?.getLineContent(component.keyRange.begin.line)
+        .length ?? component.keyRange.end.col) + 1;
+    if (text === "") {
       editor.executeEdits("configuration-editor", [
         {
           range: {
-            startLineNumber: model.getLineCount(),
-            endLineNumber: model.getLineCount(),
-            startColumn: column,
-            endColumn: column,
+            startLineNumber: component.keyRange.begin.line,
+            startColumn: eol,
+            endLineNumber:
+              component.valueRange?.end.line ?? component.keyRange.end.line,
+            endColumn: component.valueRange?.end.col ?? eol,
           },
-          text: component.marshal() + "\n",
+          text: "",
+        },
+      ]);
+    } else if (component.valueRange) {
+      const baseIndent = component.valueRange.begin.col - 1;
+      editor.executeEdits("configuration-editor", [
+        {
+          range: {
+            startLineNumber: component.valueRange.begin.line,
+            startColumn: component.valueRange.begin.col,
+            endLineNumber: component.valueRange.end.line,
+            endColumn: component.valueRange.end.col,
+          },
+          text: text.replaceAll("\n", "\n" + " ".repeat(baseIndent)),
+        },
+      ]);
+    } else {
+      const baseIndent = component.keyRange.begin.col - 1 + 2;
+      editor.executeEdits("configuration-editor", [
+        {
+          range: {
+            startLineNumber: component.keyRange.begin.line,
+            startColumn: eol,
+            endLineNumber: component.keyRange.end.line,
+            endColumn: eol,
+          },
+          text: ("\n" + text).replaceAll("\n", "\n" + " ".repeat(baseIndent)),
         },
       ]);
     }
-
-    setDrawerOpen(false);
   };
 
   return (
@@ -329,13 +278,13 @@ const ConfigEditor = () => {
         theme={editorTheme}
         height="95%"
         value={model}
-        defaultLanguage="hcl"
+        defaultLanguage="yaml"
+        beforeMount={beforeMount}
         onMount={handleEditorDidMount}
         onChange={onChange}
       />
       <div className={styles.statusbar}>
         <span></span>
-        <span>Parsed in {parsingTime}ms</span>
       </div>
       {isDrawerOpen && (
         <Drawer
@@ -343,39 +292,17 @@ const ConfigEditor = () => {
           onClose={() => setDrawerOpen(false)}
           title={
             currentComponent != null
-              ? `Edit Component [${currentComponent.component.name}]`
+              ? `Edit ${typeTitle(currentComponent)} "${currentComponent.name}"`
               : "Add Component"
           }
           closeOnMaskClick={false}
-          subtitle={
-            currentComponent != null ? (
-              <HorizontalGroup>
-                {currentComponent?.node == null && (
-                  <Button
-                    icon="arrow-left"
-                    fill="text"
-                    variant="secondary"
-                    onClick={() => setCurrentComponent(null)}
-                  />
-                )}
-                <LinkButton
-                  href={`https://grafana.com/docs/agent/latest/flow/reference/components/${currentComponent.component.name}/`}
-                  icon="external-link-alt"
-                  variant="secondary"
-                  target="_blank"
-                >
-                  Component Documentation
-                </LinkButton>
-              </HorizontalGroup>
-            ) : null
-          }
         >
           {!currentComponent && (
             <ComponentList addComponent={insertComponent} />
           )}
           {currentComponent && (
             <ComponentEditor
-              component={currentComponent.component}
+              component={currentComponent}
               updateComponent={updateComponent}
               discard={() => setDrawerOpen(false)}
             />
