@@ -1,6 +1,7 @@
 import { InlineField, InlineSwitch, Input } from "@grafana/ui";
 import { JSONSchema7 } from "json-schema";
 import { UseFormReturn } from "react-hook-form";
+import { formatTitle } from "./utils";
 
 export function buildForm(
   api: UseFormReturn,
@@ -70,18 +71,4 @@ export function buildForm(
       })}
     </>
   );
-}
-
-function formatTitle(title: string): string {
-  return title
-    .split("_")
-    .map((w) => {
-      switch (w) {
-        case "id":
-        case "url":
-          return w.toUpperCase();
-      }
-      return w.charAt(0).toUpperCase() + w.slice(1);
-    })
-    .join(" ");
 }
