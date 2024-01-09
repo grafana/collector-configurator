@@ -58,7 +58,7 @@ const getStyles = (theme: GrafanaTheme2) => {
       display: flex;
       justify-content: center;
       gap: 20px;
-      height: 60px;
+      height: 81px;
       width: 100vw;
       padding: 10px 40px;
       border: 1px solid ${theme.colors.border.weak};

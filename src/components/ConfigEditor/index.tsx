@@ -288,25 +288,25 @@ const ConfigEditor = () => {
       </div>
       {isDrawerOpen && (
         <Drawer
-          scrollableContent={true}
           onClose={() => setDrawerOpen(false)}
           title={
             currentComponent != null
               ? `Edit ${typeTitle(currentComponent)} "${currentComponent.name}"`
               : "Add Component"
           }
-          closeOnMaskClick={false}
         >
-          {!currentComponent && (
-            <ComponentList addComponent={insertComponent} />
-          )}
-          {currentComponent && (
-            <ComponentEditor
-              component={currentComponent}
-              updateComponent={updateComponent}
-              discard={() => setDrawerOpen(false)}
-            />
-          )}
+          <div>
+            {!currentComponent && (
+              <ComponentList addComponent={insertComponent} />
+            )}
+            {currentComponent && (
+              <ComponentEditor
+                component={currentComponent}
+                updateComponent={updateComponent}
+                discard={() => setDrawerOpen(false)}
+              />
+            )}
+          </div>
         </Drawer>
       )}
     </>
