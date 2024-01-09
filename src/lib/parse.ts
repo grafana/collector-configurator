@@ -46,6 +46,7 @@ export function parseConfig(model: string) {
   let c: Component[] = [];
   const lc = new LineCounter();
   const doc = parseDocument(model, { lineCounter: lc });
+  if (!doc.contents) return c;
   (doc.contents as YAMLMap).items
     .filter((i) => (i.key as Scalar).value !== "service")
     .forEach((block) => {
