@@ -226,9 +226,15 @@ const ConfigEditor = () => {
     const val = cleanValues(component.value, component.schema);
     let text = YAML.stringify(val).slice(0, -1); // marshall without final \n
     if (Object.keys(val).length === 0) text = "";
+    const model = editor.getModel();
     const eol =
-      (editor.getModel()?.getLineContent(component.keyRange.begin.line)
-        .length ?? component.keyRange.end.col) + 1;
+      (model?.getLineContent(component.keyRange.begin.line).length ??
+        component.keyRange.end.col) + 1;
+    if (component.valueRange?.end.col === 1) {
+      component.valueRange.end.line -= 1;
+      component.valueRange.end.col =
+        model?.getLineContent(component.valueRange.end.line).length!! + 1;
+    }
     if (text === "") {
       editor.executeEdits("configuration-editor", [
         {
