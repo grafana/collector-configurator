@@ -32,7 +32,7 @@ const components: ListEntry[] = (() => {
   const cmpnts: ListEntry[] = [];
   for (const cat of Object.keys(schema.properties ?? {})) {
     const ct = cat.slice(0, -1) as ComponentType;
-    if (!["exporter", "receiver", "processor"].includes(ct)) {
+    if (!["exporter", "receiver", "processor", "extension"].includes(ct)) {
       continue;
     }
     for (const cmpMatch of Object.keys(

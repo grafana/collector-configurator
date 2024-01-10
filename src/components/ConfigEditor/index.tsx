@@ -14,12 +14,7 @@ import { GrafanaTheme2 } from "@grafana/data";
 import { configureMonacoYaml } from "monaco-yaml";
 
 import schema from "../../lib/schema.json";
-import {
-  Component,
-  ComponentType,
-  parseConfig,
-  typeTitle,
-} from "../../lib/parse";
+import { Component, parseConfig, typeTitle } from "../../lib/parse";
 import { JSONSchema7 } from "json-schema";
 
 const defaultOpts: monaco.editor.IStandaloneEditorConstructionOptions = {

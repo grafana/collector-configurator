@@ -70,10 +70,8 @@ export function parseConfig(model: string) {
           name: ct,
           schema: {},
           value: {},
-          keyRange: {
-            begin: lc.linePos((block.key as Scalar).range?.[0]!!),
-            end: lc.linePos((block.key as Scalar).range?.[2]!!),
-          },
+          keyRange,
+          valueRange,
         });
       }
       if (!block.value) return;
