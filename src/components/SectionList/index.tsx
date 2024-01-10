@@ -1,13 +1,4 @@
-import {
-  Card,
-  Button,
-  LinkButton,
-  Icon,
-  IconName,
-  Input,
-  Field,
-} from "@grafana/ui";
-import { Component, ComponentType } from "../../lib/parse";
+import { Card, Icon, IconName } from "@grafana/ui";
 
 import raw_schema from "../../lib/schema.json";
 import { JSONSchema7 } from "json-schema";
@@ -15,6 +6,23 @@ import { useComponentContext } from "../../state";
 import { formatTitle } from "../../lib/utils";
 import { css } from "@emotion/css";
 const schema = raw_schema as JSONSchema7;
+
+function iconFor(t: string): IconName {
+  switch (t) {
+    case "processors":
+      return "process";
+    case "receivers":
+      return "cloud-download";
+    case "exporters":
+      return "cloud-upload";
+    case "connectors":
+      return "plug";
+    case "services":
+      return "arrow-random";
+    default:
+      return "cog";
+  }
+}
 
 const SectionList = ({
   insertSection,
@@ -52,6 +60,9 @@ const SectionList = ({
           `}
           onClick={() => insertSection(s.key)}
         >
+          <Card.Figure>
+            <Icon size="xxxl" name={iconFor(s.key)} />
+          </Card.Figure>
           <Card.Heading>{s.value.title ?? formatTitle(s.key)}</Card.Heading>
           <Card.Description>{s.value.description}</Card.Description>
         </Card>
