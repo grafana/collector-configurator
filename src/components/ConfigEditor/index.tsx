@@ -14,8 +14,14 @@ import { GrafanaTheme2 } from "@grafana/data";
 import { configureMonacoYaml } from "monaco-yaml";
 
 import schema from "../../lib/schema.json";
-import { Component, parseConfig, typeTitle } from "../../lib/parse";
+import {
+  Component,
+  ComponentType,
+  parseConfig,
+  typeTitle,
+} from "../../lib/parse";
 import { JSONSchema7 } from "json-schema";
+import SectionList from "../SectionList";
 
 const defaultOpts: monaco.editor.IStandaloneEditorConstructionOptions = {
   fontSize: 15,
@@ -120,7 +126,7 @@ const ConfigEditor = () => {
         },
         command: {
           id: addComponent,
-          title: "Add Component",
+          title: "Add Section",
         },
       },
     ];
@@ -247,7 +253,7 @@ const ConfigEditor = () => {
     component.keyRange = {
       begin: {
         line: cc.keyRange.begin.line + 1,
-        col: baseIndent,
+        col: baseIndent + 1,
       },
       end: {
         line: cc.keyRange.begin.line + 1,
@@ -255,6 +261,36 @@ const ConfigEditor = () => {
       },
     };
     setCurrentComponent(component);
+  };
+
+  const insertSection = (section: string) => {
+    let editor = editorRef.current!!;
+
+    const model = editor.getModel();
+    let text = `\n${section}:\n`;
+    const line = (model?.getLineCount() ?? 0) + 1;
+    editor.executeEdits("insert-section", [
+      {
+        range: {
+          startLineNumber: line,
+          startColumn: 0,
+          endLineNumber: line,
+          endColumn: 0,
+        },
+        text: text,
+      },
+    ]);
+    const c = {
+      type: "section" as ComponentType,
+      name: section.slice(0, -1),
+      keyRange: {
+        begin: { line: line, col: 1 },
+        end: { line: line, col: section.length + 1 },
+      },
+      value: {},
+      schema: {},
+    };
+    setCurrentComponent(c);
   };
 
   const parseComponents = useCallback(() => {
@@ -344,9 +380,11 @@ const ConfigEditor = () => {
           title={
             currentComponent?.type === "section"
               ? `Add ${typeTitle(currentComponent.name)}`
-              : `Edit ${typeTitle(
-                currentComponent?.type ?? "components",
-              )} "${currentComponent?.name}"`
+              : currentComponent
+                ? `Edit ${typeTitle(
+                  currentComponent?.type ?? "components",
+                )} "${currentComponent?.name}"`
+                : `Add Section`
           }
         >
           <div>
@@ -363,6 +401,7 @@ const ConfigEditor = () => {
                 discard={() => setDrawerOpen(false)}
               />
             )}
+            {!currentComponent && <SectionList insertSection={insertSection} />}
           </div>
         </Drawer>
       )}

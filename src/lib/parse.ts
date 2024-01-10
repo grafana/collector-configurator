@@ -55,6 +55,7 @@ export function parseConfig(model: string) {
   (doc.contents as YAMLMap).items
     .filter((i) => (i.key as Scalar).value !== "service")
     .forEach((block) => {
+      if (!(block.key as Scalar).value) return;
       const parent = (block.key as Scalar).value as string;
       const ct = ((block.key as Scalar).value as string).slice(
         0,
@@ -78,6 +79,7 @@ export function parseConfig(model: string) {
       if ((block.value as YAMLMap).items) {
         (block.value as YAMLMap).items.forEach((component) => {
           const cp = component as Pair;
+          if (!cp.key) return;
           const name = (cp.key as Scalar).value as string;
           if (!name) {
             return;
