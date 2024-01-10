@@ -52,7 +52,9 @@ export function parseConfig(model: string) {
   const lc = new LineCounter();
   const doc = parseDocument(model, { lineCounter: lc });
   if (!doc.contents || !(doc.contents as YAMLMap).items) return c;
+  const knownTopLevel = Object.keys(schema.properties ?? {});
   (doc.contents as YAMLMap).items
+    .filter((i) => knownTopLevel.includes((i.key as Scalar).value as string))
     .filter((i) => (i.key as Scalar).value !== "service")
     .forEach((block) => {
       if (!(block.key as Scalar).value) return;
