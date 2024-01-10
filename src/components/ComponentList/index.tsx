@@ -9,49 +9,77 @@ import {
 } from "@grafana/ui";
 import { useMemo, useState } from "react";
 import { faro } from "@grafana/faro-web-sdk";
-import { Component } from "../../lib/parse";
+import { Component, ComponentType } from "../../lib/parse";
+
+import raw_schema from "../../lib/schema.json";
+import { JSONSchema7 } from "json-schema";
+import { formatTitle } from "../../lib/utils";
+const schema = raw_schema as JSONSchema7;
 
 interface ComponentListProps {
   addComponent: (component: Component) => void;
+  section: Component;
 }
 
 type ListEntry = {
   name: string;
   title: string;
-  meta: Array<string>;
   icon: IconName | `${string}.svg` | `${string}.png`;
   component: Component;
 };
 
-const components: ListEntry[] = [
-  {
-    name: "loki",
-    title: "Send Logs",
-    meta: ["Logging", "Loki", "Exporter"],
-    icon: "cloud-upload",
-    component: {
-      type: "exporter",
-      name: "loki",
-      schema: {},
-      value: {},
-      keyRange: {
-        begin: { line: 0, col: 0 },
-        end: { line: 0, col: 0 },
-      },
-    },
-  },
-];
+const components: ListEntry[] = (() => {
+  const cmpnts: ListEntry[] = [];
+  for (const cat of Object.keys(schema.properties ?? {})) {
+    const ct = cat.slice(0, -1) as ComponentType;
+    if (!["exporter", "receiver", "processor"].includes(ct)) {
+      continue;
+    }
+    for (const cmpMatch of Object.keys(
+      (schema.properties?.[cat] as JSONSchema7).patternProperties ?? {},
+    )) {
+      if (cmpMatch === "additionalProperties") continue;
+      const name = cmpMatch.slice(
+        cmpMatch.indexOf("^") + 1,
+        cmpMatch.indexOf("(") !== -1 ? cmpMatch.indexOf("(") : cmpMatch.length,
+      );
+      const cschema =
+        ((schema.properties?.[cat] as JSONSchema7).patternProperties?.[
+          cmpMatch
+        ] as JSONSchema7) ?? {};
+      cmpnts.push({
+        name,
+        title: formatTitle(name),
+        icon: ct === "exporter" ? "cloud-upload" : "apps",
+        component: {
+          name: name,
+          type: ct,
+          schema: cschema,
+          value: {},
+          keyRange: {
+            begin: { line: 0, col: 0 },
+            end: { line: 0, col: 0 },
+          },
+        },
+      });
+    }
+  }
+  return cmpnts;
+})();
 
-const ComponentList = ({ addComponent }: ComponentListProps) => {
+const ComponentList = ({ addComponent, section }: ComponentListProps) => {
   const [filter, setFilter] = useState("");
   const filtered = useMemo(() => {
-    if (filter === "") return components;
-    return components.filter(
+    const categorized = components.filter(
+      (c) => c.component.type === section.name,
+    );
+    if (filter === "") return categorized;
+    return categorized.filter(
       (c) =>
         c.name.includes(filter.toLowerCase()) ||
         c.title.toLowerCase().includes(filter.toLowerCase()),
     );
-  }, [filter]);
+  }, [filter, section]);
   return (
     <>
       <Field label="Search components">
@@ -75,13 +103,13 @@ const ComponentList = ({ addComponent }: ComponentListProps) => {
                   <img src={c.icon} alt={`Icon representing ${c.title}`} />
                 )}
               </Card.Figure>
-              <Card.Meta>{c.meta}</Card.Meta>
               <Card.Actions>
                 <Button
                   onClick={() => {
                     faro.api?.pushEvent("added_component", {
                       component: c.name,
                     });
+                    addComponent(c.component);
                   }}
                 >
                   Add

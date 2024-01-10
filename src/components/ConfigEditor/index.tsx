@@ -14,7 +14,12 @@ import { GrafanaTheme2 } from "@grafana/data";
 import { configureMonacoYaml } from "monaco-yaml";
 
 import schema from "../../lib/schema.json";
-import { Component, parseConfig, typeTitle } from "../../lib/parse";
+import {
+  Component,
+  ComponentType,
+  parseConfig,
+  typeTitle,
+} from "../../lib/parse";
 import { JSONSchema7 } from "json-schema";
 
 const defaultOpts: monaco.editor.IStandaloneEditorConstructionOptions = {
@@ -126,6 +131,21 @@ const ConfigEditor = () => {
     ];
     lenses.push(
       ...componentsRef.current.map((c) => {
+        if (c.type === "section") {
+          return {
+            range: {
+              startLineNumber: c.keyRange.begin.line,
+              startColumn: c.keyRange.begin.col,
+              endLineNumber: c.keyRange.end.line,
+              endColumn: c.keyRange.end.col,
+            },
+            command: {
+              id: editComponent,
+              title: `Add ${typeTitle(c.name)}`,
+              arguments: [c],
+            },
+          };
+        }
         return {
           range: {
             startLineNumber: c.keyRange.begin.line,
@@ -135,7 +155,7 @@ const ConfigEditor = () => {
           },
           command: {
             id: editComponent,
-            title: `Edit ${typeTitle(c)}`,
+            title: `Edit ${typeTitle(c.type)}`,
             arguments: [c],
           },
         };
@@ -208,6 +228,37 @@ const ConfigEditor = () => {
   };
 
   const insertComponent = (component: Component) => {
+    let editor = editorRef.current!!;
+    let cc = currentComponent!!;
+
+    const model = editor.getModel();
+    const eol =
+      (model?.getLineContent(cc.keyRange.begin.line).length ??
+        cc.keyRange.end.col) + 1;
+
+    let text = `\n${component.name}:`;
+    const baseIndent = cc.keyRange.begin.col - 1 + 2;
+    editor.executeEdits("insert-component", [
+      {
+        range: {
+          startLineNumber: cc.keyRange.begin.line,
+          startColumn: eol,
+          endLineNumber: cc.keyRange.begin.line,
+          endColumn: eol,
+        },
+        text: text.replaceAll("\n", "\n" + " ".repeat(baseIndent)),
+      },
+    ]);
+    component.keyRange = {
+      begin: {
+        line: cc.keyRange.begin.line + 1,
+        col: baseIndent,
+      },
+      end: {
+        line: cc.keyRange.begin.line + 1,
+        col: baseIndent + text.length,
+      },
+    };
     setCurrentComponent(component);
   };
 
@@ -296,16 +347,21 @@ const ConfigEditor = () => {
         <Drawer
           onClose={() => setDrawerOpen(false)}
           title={
-            currentComponent != null
-              ? `Edit ${typeTitle(currentComponent)} "${currentComponent.name}"`
-              : "Add Component"
+            currentComponent?.type === "section"
+              ? `Add ${typeTitle(currentComponent.name)}`
+              : `Edit ${typeTitle(
+                currentComponent?.type ?? "components",
+              )} "${currentComponent?.name}"`
           }
         >
           <div>
-            {!currentComponent && (
-              <ComponentList addComponent={insertComponent} />
+            {currentComponent?.type === "section" && (
+              <ComponentList
+                section={currentComponent}
+                addComponent={insertComponent}
+              />
             )}
-            {currentComponent && (
+            {currentComponent && currentComponent.type !== "section" && (
               <ComponentEditor
                 component={currentComponent}
                 updateComponent={updateComponent}
