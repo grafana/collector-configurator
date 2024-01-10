@@ -59,11 +59,14 @@ const getStyles = (theme: GrafanaTheme2) => {
       justify-content: center;
       gap: 20px;
       height: 81px;
+      position: fixed;
       width: 100vw;
       padding: 10px 40px;
       border: 1px solid ${theme.colors.border.weak};
       border-radius: 2px;
       color: ${theme.colors.text.primary};
+      background-color: ${theme.colors.background.primary};
+      z-index: 1060;
     `,
     headerText: css`
       margin-bottom: 0;

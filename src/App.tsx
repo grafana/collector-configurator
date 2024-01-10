@@ -35,7 +35,7 @@ function App() {
   return (
     <div className={styles.container}>
       <Header></Header>
-      <section className={styles.section}>
+      <section className={styles.firstSection}>
         <div className={styles.hero}>
           <h1>Welcome to the Configuration Generator</h1>
           <p>This tool allows for easy configuration of the OTEL Collector</p>
@@ -83,6 +83,13 @@ const getStyles = (theme: GrafanaTheme2) => {
       padding-top: 20px;
       display: flex;
       justify-content: center;
+    `,
+    firstSection: css`
+      width: 100%;
+      padding-top: 20px;
+      display: flex;
+      justify-content: center;
+      margin-top: 81px;
     `,
     content: css`
       width: 80vw;
