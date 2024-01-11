@@ -10,11 +10,13 @@ import {
   VerticalGroup,
   HorizontalGroup,
   Modal,
+  LinkButton,
 } from "@grafana/ui";
 import Header from "./components/Header";
 import ConfigEditor from "./components/ConfigEditor";
 import { useState, useMemo } from "react";
 import { useModelContext } from "./state";
+import { stringify } from "./lib/jsurl2";
 import ExamplesCatalog from "./components/ExamplesCatalog";
 
 function App() {
@@ -56,6 +58,14 @@ function App() {
               <Button onClick={openExamples} variant="secondary">
                 Open examples catalog
               </Button>
+              <LinkButton
+                variant="secondary"
+                href={`https://otelbin.io/?#config=${stringify(model)}`}
+                icon="external-link-alt"
+                target="_blank"
+              >
+                Open in otelbin.io
+              </LinkButton>
             </HorizontalGroup>
           </VerticalGroup>
         </div>
