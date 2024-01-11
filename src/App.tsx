@@ -8,16 +8,22 @@ import {
   Icon,
   Tooltip,
   VerticalGroup,
+  HorizontalGroup,
+  Modal,
 } from "@grafana/ui";
 import Header from "./components/Header";
 import ConfigEditor from "./components/ConfigEditor";
 import { useState, useMemo } from "react";
 import { useModelContext } from "./state";
+import ExamplesCatalog from "./components/ExamplesCatalog";
 
 function App() {
   const styles = useStyles(getStyles);
   const { model } = useModelContext();
   const [copied, setCopied] = useState(false);
+  const [examplesCatalogOpen, setExamplesCatalogOpen] = useState(false);
+  const openExamples = () => setExamplesCatalogOpen(true);
+  const closeExamples = () => setExamplesCatalogOpen(false);
 
   const shareLink = useMemo(
     () => `${window.location}?c=${btoa(model)}`,
@@ -40,6 +46,18 @@ function App() {
           <h1>Welcome to the Configuration Generator</h1>
           <p>This tool allows for easy configuration of the OTEL Collector</p>
           <hr />
+          <VerticalGroup>
+            <p>
+              If this is your first time working with the agent, we recommend
+              you get started with an example configuration, based on your
+              usecase.
+            </p>
+            <HorizontalGroup>
+              <Button onClick={openExamples} variant="secondary">
+                Open examples catalog
+              </Button>
+            </HorizontalGroup>
+          </VerticalGroup>
         </div>
       </section>
       <section className={styles.section}>
@@ -72,6 +90,13 @@ function App() {
           </VerticalGroup>
         </div>
       </section>
+      <Modal
+        title="Examples Catalog"
+        isOpen={examplesCatalogOpen}
+        onDismiss={closeExamples}
+      >
+        <ExamplesCatalog dismiss={closeExamples} />
+      </Modal>
     </div>
   );
 }
