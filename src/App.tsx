@@ -50,9 +50,9 @@ function App() {
           <hr />
           <VerticalGroup>
             <p>
-              If this is your first time working with the agent, we recommend
-              you get started with an example configuration, based on your
-              usecase.
+              If this is your first time working with the OpenTelemetry
+              Collector, we recommend you get started with an example
+              configuration, based on your usecase.
             </p>
             <HorizontalGroup>
               <Button onClick={openExamples} variant="secondary">
