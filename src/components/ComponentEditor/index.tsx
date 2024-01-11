@@ -3,6 +3,7 @@ import { Component } from "../../lib/parse";
 import { buildForm } from "../../lib/buildForm";
 import { Button, HorizontalGroup } from "@grafana/ui";
 import { JSONSchema7 } from "json-schema";
+import { css } from "@emotion/css";
 
 interface ComponentEditorProps {
   updateComponent: (component: Component) => void;
@@ -45,7 +46,12 @@ const ComponentEditor = ({
   return (
     <>
       {component.schema.description}
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form
+        className={css`
+          max-width: 800px;
+        `}
+        onSubmit={handleSubmit(onSubmit)}
+      >
         {buildForm(formAPI, component.schema)}
         <HorizontalGroup>
           <Button type="submit">Save</Button>

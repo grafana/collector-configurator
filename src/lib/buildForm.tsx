@@ -1,6 +1,8 @@
-import { InlineField, InlineSwitch, Input } from "@grafana/ui";
+import { css } from "@emotion/css";
+import { Alert, InlineField, InlineSwitch, Input } from "@grafana/ui";
 import { JSONSchema7 } from "json-schema";
-import { UseFormReturn } from "react-hook-form";
+import { Controller, UseFormReturn } from "react-hook-form";
+import PipelineBuilder from "../components/ComponentEditor/components/pipelinebuilder";
 import { formatTitle } from "./utils";
 
 export function buildForm(
@@ -10,6 +12,7 @@ export function buildForm(
 ): JSX.Element {
   let plain: { name: string; schema: JSONSchema7 }[] = [];
   let complex: { name: string; schema: JSONSchema7 }[] = [];
+  let array: { name: string; schema: JSONSchema7 }[] = [];
   for (const key of Object.keys(schema.properties ?? {})) {
     const ps = schema.properties![key] as JSONSchema7;
     switch (ps.type) {
@@ -18,6 +21,9 @@ export function buildForm(
       case "boolean":
       case "string":
         plain.push({ name: key, schema: ps });
+        break;
+      case "array":
+        array.push({ name: key, schema: ps });
         break;
       case "object":
         complex.push({ name: key, schema: ps });
@@ -59,6 +65,33 @@ export function buildForm(
           >
             <InputComponent />
           </InlineField>
+        );
+      })}
+      {array.map((f) => {
+        if (!["receivers", "processors", "exporters"].includes(f.name)) {
+          return (
+            <div key={f.name}>
+              <h5>{formatTitle(f.name)}</h5>
+              <Alert title={`Property '${f.name}' currently unsupported`} />
+            </div>
+          );
+        }
+        return (
+          <div
+            key={f.name}
+            className={css`
+              margin-bottom: 2em;
+            `}
+          >
+            <h5>{formatTitle(f.name)}</h5>
+            <Controller
+              name={f.name}
+              control={api.control}
+              render={({ field: { ref, ...field } }) => (
+                <PipelineBuilder {...field} entries={field.value ?? []} />
+              )}
+            />
+          </div>
         );
       })}
       {complex.map((f) => {
