@@ -1,4 +1,5 @@
 import React, { useContext, useState } from "react";
+import Examples from "./components/ExamplesCatalog/examples";
 import { Component } from "./lib/parse";
 
 const ComponentContext = React.createContext<{
@@ -40,9 +41,7 @@ export const ModelProvider = ({ children }: React.PropsWithChildren) => {
   if (urlModel) initialModel = atob(urlModel);
   else if (localStorageModel) initialModel = localStorageModel;
   if (initialModel === "") {
-    initialModel = `# Welcome to the OTEL Collector Configurator
-
-`;
+    initialModel = Examples[0].source;
   }
   window.history.replaceState(null, "", window.location.pathname);
   const [model, setModel] = useState<string>(initialModel);
