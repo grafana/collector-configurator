@@ -26,7 +26,7 @@ if (process.env.REACT_APP_FARO_URL) {
   initializeFaro({
     url: process.env.REACT_APP_FARO_URL,
     app: {
-      name: "Collector Configurator",
+      name: "OTEL Configurator",
       version: "0.1.0",
       environment: process.env.NODE_ENV,
     },
