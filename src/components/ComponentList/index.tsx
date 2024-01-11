@@ -67,12 +67,63 @@ const components: ListEntry[] = (() => {
   return cmpnts;
 })();
 
+const pipelineComponents: ListEntry[] = [
+  {
+    name: "logs",
+    title: "Logs",
+    icon: "gf-logs",
+    component: {
+      name: "logs",
+      type: "pipeline",
+      schema: raw_schema.properties.service.properties.pipelines.properties
+        .logs as JSONSchema7,
+      value: {},
+      keyRange: {
+        begin: { line: 0, col: 0 },
+        end: { line: 0, col: 0 },
+      },
+    },
+  },
+  {
+    name: "metrics",
+    title: "Metrics",
+    icon: "graph-bar",
+    component: {
+      name: "metrics",
+      type: "pipeline",
+      schema: raw_schema.properties.service.properties.pipelines.properties
+        .metrics as JSONSchema7,
+      value: {},
+      keyRange: {
+        begin: { line: 0, col: 0 },
+        end: { line: 0, col: 0 },
+      },
+    },
+  },
+  {
+    name: "traces",
+    title: "Traces",
+    icon: "message",
+    component: {
+      name: "traces",
+      type: "pipeline",
+      schema: raw_schema.properties.service.properties.pipelines.properties
+        .traces as JSONSchema7,
+      value: {},
+      keyRange: {
+        begin: { line: 0, col: 0 },
+        end: { line: 0, col: 0 },
+      },
+    },
+  },
+];
+
 const ComponentList = ({ addComponent, section }: ComponentListProps) => {
   const [filter, setFilter] = useState("");
   const filtered = useMemo(() => {
-    const categorized = components.filter(
-      (c) => c.component.type === section.name,
-    );
+    const categorized = (
+      section.name === "pipeline" ? pipelineComponents : components
+    ).filter((c) => c.component.type === section.name);
     if (filter === "") return categorized;
     return categorized.filter(
       (c) =>

@@ -17,7 +17,7 @@ function iconFor(t: string): IconName {
       return "cloud-upload";
     case "connectors":
       return "plug";
-    case "services":
+    case "service":
       return "arrow-random";
     default:
       return "cog";
@@ -35,7 +35,7 @@ const SectionList = ({
     .map((c) => c.name);
   const sections: { key: string; value: JSONSchema7 }[] = [];
   for (const name of Object.keys(schema.properties ?? {})) {
-    const ct = name.slice(0, -1);
+    const ct = name === "service" ? name : name.slice(0, -1);
     if (!present.includes(ct)) {
       sections.push({
         key: name,

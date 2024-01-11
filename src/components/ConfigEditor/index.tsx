@@ -131,9 +131,27 @@ const ConfigEditor = () => {
       },
     ];
     lenses.push(
-      ...componentsRef.current.map((c) => {
+      ...componentsRef.current.flatMap((c) => {
         if (c.type === "section") {
-          return {
+          if (c.name === "service") return [];
+          return [
+            {
+              range: {
+                startLineNumber: c.keyRange.begin.line,
+                startColumn: c.keyRange.begin.col,
+                endLineNumber: c.keyRange.end.line,
+                endColumn: c.keyRange.end.col,
+              },
+              command: {
+                id: editComponent,
+                title: `Add ${typeTitle(c.name)}`,
+                arguments: [c],
+              },
+            },
+          ];
+        }
+        return [
+          {
             range: {
               startLineNumber: c.keyRange.begin.line,
               startColumn: c.keyRange.begin.col,
@@ -142,24 +160,11 @@ const ConfigEditor = () => {
             },
             command: {
               id: editComponent,
-              title: `Add ${typeTitle(c.name)}`,
+              title: `Edit ${typeTitle(c.type)}`,
               arguments: [c],
             },
-          };
-        }
-        return {
-          range: {
-            startLineNumber: c.keyRange.begin.line,
-            startColumn: c.keyRange.begin.col,
-            endLineNumber: c.keyRange.end.line,
-            endColumn: c.keyRange.end.col,
           },
-          command: {
-            id: editComponent,
-            title: `Edit ${typeTitle(c.type)}`,
-            arguments: [c],
-          },
-        };
+        ];
       }),
     );
     return {
@@ -267,8 +272,11 @@ const ConfigEditor = () => {
     let editor = editorRef.current!!;
 
     const model = editor.getModel();
-    let text = `\n${section}:\n`;
     const line = (model?.getLineCount() ?? 0) + 1;
+    let text =
+      section === "service"
+        ? `\n${section}:\n  pipelines:\n`
+        : `\n${section}:\n`;
     editor.executeEdits("insert-section", [
       {
         range: {
@@ -280,16 +288,28 @@ const ConfigEditor = () => {
         text: text,
       },
     ]);
-    const c = {
-      type: "section" as ComponentType,
-      name: section.slice(0, -1),
-      keyRange: {
-        begin: { line: line, col: 1 },
-        end: { line: line, col: section.length + 1 },
-      },
-      value: {},
-      schema: {},
-    };
+    const c =
+      section === "service"
+        ? {
+          type: "section" as ComponentType,
+          name: "pipeline",
+          keyRange: {
+            begin: { line: line + 1, col: 3 },
+            end: { line: line + 1, col: "pipeline".length + 3 },
+          },
+          value: {},
+          schema: {},
+        }
+        : {
+          type: "section" as ComponentType,
+          name: section.slice(0, -1),
+          keyRange: {
+            begin: { line: line, col: 1 },
+            end: { line: line, col: section.length + 1 },
+          },
+          value: {},
+          schema: {},
+        };
     setCurrentComponent(c);
   };
 

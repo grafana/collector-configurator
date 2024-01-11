@@ -1,4 +1,12 @@
-import { LineCounter, parseDocument, YAMLMap, Scalar, Pair } from "yaml";
+import {
+  LineCounter,
+  parseDocument,
+  YAMLMap,
+  Scalar,
+  Pair,
+  Document,
+  Node,
+} from "yaml";
 import { JSONSchema7 } from "json-schema";
 
 import raw_schema from "./schema.json";
@@ -10,6 +18,7 @@ export type ComponentType =
   | "processor"
   | "receiver"
   | "extension"
+  | "pipeline"
   | "section";
 
 export interface Pos {
@@ -55,13 +64,11 @@ export function parseConfig(model: string) {
   const knownTopLevel = Object.keys(schema.properties ?? {});
   (doc.contents as YAMLMap).items
     .filter((i) => knownTopLevel.includes((i.key as Scalar).value as string))
-    .filter((i) => (i.key as Scalar).value !== "service")
     .forEach((block) => {
       if (!(block.key as Scalar).value) return;
       const parent = (block.key as Scalar).value as string;
-      const ct = ((block.key as Scalar).value as string).slice(
-        0,
-        -1,
+      const ct = (
+        parent === "service" ? parent : parent.slice(0, -1)
       ) as ComponentType;
       {
         const { keyRange, valueRange } = rangesFor(
@@ -86,17 +93,30 @@ export function parseConfig(model: string) {
           if (!name) {
             return;
           }
-          const schema = schemaFor(parent, name);
-          if (!schema.properties) {
-            return;
-          }
-
-          const value = (cp.value as YAMLMap).toJS(doc);
 
           const { keyRange, valueRange } = rangesFor(
             lc,
             cp as Pair<Scalar, YAMLMap>,
           );
+
+          if (name === "pipelines") {
+            c.push(...parsePipelines(lc, cp.value as YAMLMap, doc));
+            c.push({
+              name: "pipeline",
+              keyRange,
+              valueRange,
+              schema: {},
+              value: {},
+              type: "section",
+            });
+            return;
+          }
+
+          const schema = schemaFor(parent, name);
+          if (!schema.properties) {
+            return;
+          }
+          const value = (cp.value as YAMLMap).toJS(doc);
 
           const comp: Component = {
             name,
@@ -132,4 +152,29 @@ function rangesFor(lc: LineCounter, m: Pair<Scalar, YAMLMap>) {
     };
   }
   return r;
+}
+
+function parsePipelines(
+  lc: LineCounter,
+  block: YAMLMap,
+  doc: Document<Node, boolean>,
+): Component[] {
+  const pipelines: Component[] = [];
+  if (!block.items) return [];
+  for (const k of block.items) {
+    const name = (k.key as Scalar).value as string;
+    const { keyRange, valueRange } = rangesFor(lc, k as Pair<Scalar, YAMLMap>);
+    const value = (k.value as YAMLMap).toJS(doc);
+    pipelines.push({
+      name,
+      type: "pipeline",
+      schema: (
+        raw_schema.properties.service.properties.pipelines as JSONSchema7
+      ).properties?.[name.split("/")[0]] as JSONSchema7,
+      keyRange,
+      value,
+      valueRange,
+    });
+  }
+  return pipelines;
 }
