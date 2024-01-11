@@ -26,7 +26,8 @@ export function buildForm(
         array.push({ name: key, schema: ps });
         break;
       case "object":
-        complex.push({ name: key, schema: ps });
+        if (key !== "resource_attributes" && key !== "metrics")
+          complex.push({ name: key, schema: ps });
     }
   }
   return (
