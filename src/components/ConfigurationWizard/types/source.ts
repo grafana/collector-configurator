@@ -9,6 +9,5 @@ export interface Source {
   supports: TelemetryType[];
   component: React.ComponentType;
   advancedForm?: (props: AdvancedFormProps) => JSX.Element;
-  defaults?: Record<string, any>;
   schema: JSONSchema7;
 }

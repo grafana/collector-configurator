@@ -2,28 +2,13 @@ import { useForm } from "react-hook-form";
 import { Component } from "../../lib/parse";
 import { buildForm } from "../../lib/buildForm";
 import { Button, HorizontalGroup } from "@grafana/ui";
-import { JSONSchema7 } from "json-schema";
 import { css } from "@emotion/css";
+import { setDefaultValues } from "../../lib/utils";
 
 interface ComponentEditorProps {
   updateComponent: (component: Component) => void;
   discard: () => void;
   component: Component;
-}
-
-function setDefaultValues(values: any, schema: JSONSchema7): any {
-  const v = values;
-  for (const k of Object.keys(schema.properties ?? {})) {
-    const ks = schema.properties!![k] as JSONSchema7;
-    const t = ks.type!!;
-    if (t !== "object") {
-      if (!Object.hasOwn(v, k)) v[k] = ks.default;
-    } else {
-      const ov = setDefaultValues(v[k] ?? {}, ks);
-      if (Object.keys(ov).length !== 0) v[k] = ov;
-    }
-  }
-  return v;
 }
 
 const ComponentEditor = ({

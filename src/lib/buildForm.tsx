@@ -1,5 +1,5 @@
 import { css } from "@emotion/css";
-import { Alert, InlineField, InlineSwitch, Input } from "@grafana/ui";
+import { Alert, InlineField, InlineSwitch, Input, Label } from "@grafana/ui";
 import { JSONSchema7 } from "json-schema";
 import { Controller, UseFormReturn } from "react-hook-form";
 import PipelineBuilder from "../components/ComponentEditor/components/pipelinebuilder";
@@ -92,14 +92,31 @@ export function buildForm(
                 <PipelineBuilder {...field} entries={field.value ?? []} />
               )}
             />
+            <hr />
           </div>
         );
       })}
       {complex.map((f) => {
         return (
           <div key={f.name}>
-            <h5>{formatTitle(f.name)}</h5>
-            {buildForm(api, f.schema, `${parent}${f.name}.`)}
+            {parent === "" && <h5>{formatTitle(f.name)}</h5>}
+            {parent !== "" && (
+              <Label
+                category={
+                  parent !== ""
+                    ? formatTitle(parent.slice(0, -1), ".").split(" ")
+                    : []
+                }
+                children={formatTitle(f.name)}
+              />
+            )}
+            <div
+              className={css`
+                padding-left: 1em;
+              `}
+            >
+              {buildForm(api, f.schema, `${parent}${f.name}.`)}
+            </div>
           </div>
         );
       })}

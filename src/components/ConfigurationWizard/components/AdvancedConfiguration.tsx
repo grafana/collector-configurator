@@ -2,6 +2,7 @@ import { css } from "@emotion/css";
 import { GrafanaTheme2 } from "@grafana/data";
 import { Alert, Button, FieldSet, Modal } from "@grafana/ui";
 import { FormProvider, useForm } from "react-hook-form";
+import { setDefaultValues } from "../../../lib/utils";
 import { useStyles } from "../../../theme";
 import { WizardFormBasicValues } from "../types/form";
 import { Source } from "../types/source";
@@ -20,7 +21,7 @@ const AdvancedConfiguration = ({
 }) => {
   const defaults: Record<string, any> = {};
   for (const source of basicValues.sources) {
-    defaults[source.value] = (source as Source).defaults;
+    defaults[source.value] = setDefaultValues({}, source.schema);
   }
   const formAPI = useForm<Record<string, any>>({
     mode: "onSubmit",
@@ -46,6 +47,7 @@ const AdvancedConfiguration = ({
                   title={`"${source.label}" does not offer a customization wizard. You can further customize the components after creating the configuration.`}
                 />
               )}
+              <hr />
             </FieldSet>
           );
         })}
