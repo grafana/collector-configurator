@@ -4,8 +4,11 @@ import {
   Button,
   Checkbox,
   Field,
+  IconButton,
   Input,
+  LinkButton,
   Modal,
+  Toggletip,
   VerticalGroup,
 } from "@grafana/ui";
 import { Controller, FormProvider, useForm } from "react-hook-form";
@@ -77,6 +80,55 @@ const BasicConfiguration = ({
                   {...register("cloud.instanceID", { required: true })}
                 />
               </Field>
+
+              <Toggletip
+                title={<h4>Your OTLP Gateway Information</h4>}
+                placement="right-start"
+                fitContent
+                content={
+                  <>
+                    <h6>1. Navigate to your account console</h6>
+                    <p>
+                      Visit{" "}
+                      <a
+                        href="https://grafana.com"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        grafana.com
+                      </a>{" "}
+                      and sign in or
+                      <LinkButton
+                        href="https://grafana.com/profile/org"
+                        target="_blank"
+                        fill="text"
+                        icon="external-link-alt"
+                      >
+                        click here
+                      </LinkButton>
+                    </p>
+
+                    <h6>2. Select the desired stack</h6>
+                    <p>
+                      Search for the stack you want to ingest data to and click
+                      on <i>Details</i>
+                    </p>
+                    <h6>3. Select the OpenTelemetry Connection card</h6>
+                    <p>
+                      After clicking on <i>Configure</i> you will see your OTLP
+                      Endpoint and instance ID
+                    </p>
+                    <img
+                      src="otlp-config.png"
+                      alt="Grafana management console showing the OTLP information for a stack"
+                    />
+                  </>
+                }
+              >
+                <Button icon="question-circle" fill="text" variant="secondary">
+                  Need help finding the correct information?
+                </Button>
+              </Toggletip>
             </>
           )}
         </Step>
