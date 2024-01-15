@@ -20,8 +20,8 @@ import {
   parseConfig,
   typeTitle,
 } from "../../lib/parse";
-import { JSONSchema7 } from "json-schema";
 import SectionList from "../SectionList";
+import { cleanValues } from "../../lib/utils";
 
 const defaultOpts: monaco.editor.IStandaloneEditorConstructionOptions = {
   fontSize: 15,
@@ -31,23 +31,6 @@ const defaultOpts: monaco.editor.IStandaloneEditorConstructionOptions = {
     horizontal: "hidden",
   },
 };
-
-function cleanValues(values: any, schema: JSONSchema7): any {
-  const v = values;
-  for (const k of Object.keys(values)) {
-    if (v[k] === (schema.properties?.[k] as JSONSchema7).default) {
-      delete v[k];
-    } else if (Number.isNaN(v[k])) {
-      delete v[k];
-    } else if ((schema.properties?.[k] as JSONSchema7).type === "object") {
-      v[k] = cleanValues(v[k], schema.properties?.[k] as JSONSchema7);
-      if (Object.keys(v[k]).length === 0) {
-        delete v[k];
-      }
-    }
-  }
-  return v;
-}
 
 const ConfigEditor = () => {
   const { model, setModel } = useModelContext();

@@ -18,6 +18,7 @@ import { useState, useMemo } from "react";
 import { useModelContext } from "./state";
 import { stringify } from "./lib/jsurl2";
 import ExamplesCatalog from "./components/ExamplesCatalog";
+import ConfigurationWizard from "./components/ConfigurationWizard";
 
 function App() {
   const styles = useStyles(getStyles);
@@ -26,6 +27,9 @@ function App() {
   const [examplesCatalogOpen, setExamplesCatalogOpen] = useState(false);
   const openExamples = () => setExamplesCatalogOpen(true);
   const closeExamples = () => setExamplesCatalogOpen(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const openWizard = () => setWizardOpen(true);
+  const closeWizard = () => setWizardOpen(false);
 
   const shareLink = useMemo(
     () => `${window.location}?c=${btoa(model)}`,
@@ -55,6 +59,9 @@ function App() {
               configuration, based on your usecase.
             </p>
             <HorizontalGroup>
+              <Button onClick={openWizard} variant="primary">
+                Open configuration wizard
+              </Button>
               <Button onClick={openExamples} variant="secondary">
                 Open examples catalog
               </Button>
@@ -106,6 +113,14 @@ function App() {
         onDismiss={closeExamples}
       >
         <ExamplesCatalog dismiss={closeExamples} />
+      </Modal>
+      <Modal
+        title="Configuration Wizard"
+        isOpen={wizardOpen}
+        onDismiss={closeWizard}
+        className={styles.wizardModal}
+      >
+        <ConfigurationWizard dismiss={closeWizard} />
       </Modal>
     </div>
   );

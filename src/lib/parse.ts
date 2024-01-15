@@ -159,6 +159,7 @@ function parsePipelines(
   block: YAMLMap,
   doc: Document<Node, boolean>,
 ): Component[] {
+  if (!block) return [];
   const pipelines: Component[] = [];
   if (!block.items) return [];
   for (const k of block.items) {
