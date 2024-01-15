@@ -45,7 +45,7 @@ const ConfigurationWizard = ({ dismiss }: { dismiss: () => void }) => {
         },
       };
       config["exporters"] = {
-        "otlp/grafanacloud": {
+        "otlphttp/grafanacloud": {
           endpoint: data.cloud.gatewayAddr,
           auth: {
             authenticator: "basicauth/grafanacloud",
@@ -57,7 +57,7 @@ const ConfigurationWizard = ({ dismiss }: { dismiss: () => void }) => {
       );
     } else {
       config["exporters"] = {
-        "otlp/backend": {
+        "otlphttp/backend": {
           endpoint: "https://your-endpoint:443",
         },
       };
