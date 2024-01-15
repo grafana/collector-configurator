@@ -30,6 +30,8 @@ export function cleanValues(values: any, schema: JSONSchema7): any {
       delete v[k];
     } else if (Number.isNaN(v[k])) {
       delete v[k];
+    } else if (s.type === "string" && !s.default && v[k] === "") {
+      delete v[k];
     } else if (s.type === "object") {
       if (v[k]) v[k] = cleanValues(v[k], s);
       if (Object.keys(v[k]).length === 0) {
