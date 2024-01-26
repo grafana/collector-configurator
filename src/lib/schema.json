@@ -14470,10 +14470,34 @@
                "additionalProperties": false,
                "properties": {
                   "client_auth": {
-                     "description": "ClientAuth settings"
+                     "description": "Username & Password authentiction",
+                     "properties": {
+                        "password": {
+                           "default": "",
+                           "type": "string"
+                        },
+                        "username": {
+                           "default": "",
+                           "type": "string"
+                        }
+                     },
+                     "type": "object"
                   },
                   "htpasswd": {
-                     "description": "Htpasswd settings."
+                     "description": "Htpasswd settings.",
+                     "properties": {
+                        "file": {
+                           "default": "",
+                           "description": "The path to the htpasswd file",
+                           "type": "string"
+                        },
+                        "inline": {
+                           "default": "",
+                           "description": "The htpasswd file inline content",
+                           "type": "string"
+                        }
+                     },
+                     "type": "object"
                   }
                },
                "type": [
@@ -15315,10 +15339,34 @@
                "additionalProperties": false,
                "properties": {
                   "client_auth": {
-                     "description": "ClientAuth settings"
+                     "description": "Username & Password authentiction",
+                     "properties": {
+                        "password": {
+                           "default": "",
+                           "type": "string"
+                        },
+                        "username": {
+                           "default": "",
+                           "type": "string"
+                        }
+                     },
+                     "type": "object"
                   },
                   "htpasswd": {
-                     "description": "Htpasswd settings."
+                     "description": "Htpasswd settings.",
+                     "properties": {
+                        "file": {
+                           "default": "",
+                           "description": "The path to the htpasswd file",
+                           "type": "string"
+                        },
+                        "inline": {
+                           "default": "",
+                           "description": "The htpasswd file inline content",
+                           "type": "string"
+                        }
+                     },
+                     "type": "object"
                   }
                },
                "type": [
