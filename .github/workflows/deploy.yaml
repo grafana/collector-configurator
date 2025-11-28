@@ -34,13 +34,14 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
-      - run: npm ci --force # needed for react-hook-form to play nicely with newer react versions
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+      - run: pnpm install
       - id: get-secrets
         uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets-v1.2.0
         with:
           repo_secrets: |
             REACT_APP_FARO_URL=faro:collector-url
-      - run: npm run-script build
+      - run: pnpm build
         # Deployment
       - name: Setup Pages
         uses: actions/configure-pages@v3

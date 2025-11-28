@@ -1,4 +1,4 @@
-import Editor, { Monaco } from "@monaco-editor/react";
+import Editor, { Monaco, loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 import { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import { Drawer } from "@grafana/ui";
@@ -31,6 +31,8 @@ const defaultOpts: monaco.editor.IStandaloneEditorConstructionOptions = {
     horizontal: "hidden",
   },
 };
+
+loader.config({ monaco });
 
 const ConfigEditor = () => {
   const { model, setModel } = useModelContext();
@@ -85,7 +87,6 @@ const ConfigEditor = () => {
           fileMatch: ["*"],
           // And the URI will be linked to as the source.
           uri: "https://github.com/dash0hq/otelbin/blob/main/src/components/monaco-editor/schema.json",
-          // @ts-expect-error TypeScript can’t narrow down the type of JSON imports
           schema,
         },
       ],
