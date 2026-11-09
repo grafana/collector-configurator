@@ -205,7 +205,7 @@ importers:
         version: 3.3.4(webpack@5.104.1)
       tailwindcss:
         specifier: ^3.0.2
-        version: 3.4.18(yaml@2.8.3)
+        version: 3.4.18(yaml@2.9.1)
       terser-webpack-plugin:
         specifier: ^5.2.5
         version: 5.3.14(webpack@5.104.1)
@@ -229,7 +229,7 @@ importers:
         version: 6.6.1(@types/babel__core@7.20.5)(webpack@5.104.1)
       yaml:
         specifier: ^2.3.4
-        version: 2.8.3
+        version: 2.9.1
     devDependencies:
       '@babel/plugin-proposal-private-property-in-object':
         specifier: ^7.21.11
@@ -7289,8 +7289,8 @@ packages:
     resolution: {integrity: sha512-vIYeF1u3CjlhAFekPPAk2h/Kv4T3mAkMox5OymRiJQB0spDP10LHvt+K7G9Ny6NuuMAb25/6n1qyUjAcGNf/AA==}
     engines: {node: '>= 6'}
 
-  yaml@2.8.3:
-    resolution: {integrity: sha512-AvbaCLOO2Otw/lW5bmh9d/WEdcDFdQp2Z2ZUH3pX9U2ihyUY0nvLv7J6TrWowklRGPYbB/IuIMfYgxaCPg5Bpg==}
+  yaml@2.9.1:
+    resolution: {integrity: sha512-3NxN8+78OdzbT7C/WjGsyfPAtJaN3FNDsWxv7Y7mcDsT/oOmgW8BpyQQFFBnvZE3j9Y2Sdz1ULFLezL7Eb2yFw==}
     engines: {node: '>= 14.6'}
     hasBin: true
 
@@ -13166,7 +13166,7 @@ snapshots:
       vscode-languageserver-textdocument: 1.0.12
       vscode-languageserver-types: 3.17.5
       vscode-uri: 3.1.0
-      yaml: 2.8.3
+      yaml: 2.9.1
 
   ms@2.0.0: {}
 
@@ -13603,13 +13603,13 @@ snapshots:
       postcss: 8.5.10
       postcss-value-parser: 4.2.0
 
-  postcss-load-config@6.0.1(jiti@1.21.7)(postcss@8.5.10)(yaml@2.8.3):
+  postcss-load-config@6.0.1(jiti@1.21.7)(postcss@8.5.10)(yaml@2.9.1):
     dependencies:
       lilconfig: 3.1.3
     optionalDependencies:
       jiti: 1.21.7
       postcss: 8.5.10
-      yaml: 2.8.3
+      yaml: 2.9.1
 
   postcss-loader@6.2.1(postcss@8.5.10)(webpack@5.104.1):
     dependencies:
@@ -15090,7 +15090,7 @@ snapshots:
 
   tabbable@6.3.0: {}
 
-  tailwindcss@3.4.18(yaml@2.8.3):
+  tailwindcss@3.4.18(yaml@2.9.1):
     dependencies:
       '@alloc/quick-lru': 5.2.0
       arg: 5.0.2
@@ -15109,7 +15109,7 @@ snapshots:
       postcss: 8.5.10
       postcss-import: 15.1.0(postcss@8.5.10)
       postcss-js: 4.1.0(postcss@8.5.10)
-      postcss-load-config: 6.0.1(jiti@1.21.7)(postcss@8.5.10)(yaml@2.8.3)
+      postcss-load-config: 6.0.1(jiti@1.21.7)(postcss@8.5.10)(yaml@2.9.1)
       postcss-nested: 6.2.0(postcss@8.5.10)
       postcss-selector-parser: 6.1.2
       resolve: 1.22.11
@@ -15819,7 +15819,7 @@ snapshots:
 
   yaml@1.10.3: {}
 
-  yaml@2.8.3: {}
+  yaml@2.9.1: {}
 
   yargs-parser@20.2.9: {}
 
